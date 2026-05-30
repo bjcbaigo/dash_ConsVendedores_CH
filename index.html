@@ -3,7 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Consulta de Artículos</title>
+  <title>Herramientas de Vendedores</title>
+  <style>
+    /* LANDING TILES */
+    .apps-landing {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px; margin-bottom: 4px;
+    }
+    .app-tile {
+      background: linear-gradient(135deg, rgba(15,28,58,.98), rgba(10,22,44,.98));
+      border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 20px; display: flex; flex-direction: column; gap: 10px;
+      text-decoration: none; color: inherit; transition: border-color .2s, box-shadow .2s;
+    }
+    .app-tile:hover { border-color: var(--accent); box-shadow: 0 4px 20px rgba(45,140,255,.2); }
+    .app-tile-icon  { font-size: 36px; }
+    .app-tile-title { font-size: 17px; font-weight: 800; }
+    .app-tile-desc  { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .app-tile-badge {
+      align-self: flex-start;
+      background: rgba(45,140,255,.15); color: var(--accent2);
+      border: 1px solid rgba(45,140,255,.25);
+      border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700;
+    }
+  </style>
   <style>
     :root{
       --bg:#07111f;
@@ -175,12 +199,31 @@
 <body>
   <div class="app">
     <section class="card hero">
-      <h1>Consulta de Artículos</h1>
-      <p>Base: ranking con precios y saldo de sucursales</p>
-      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
-        <a href="etiquetas/index.html" style="display:inline-flex;align-items:center;gap:8px;background:#122944;border:1px solid #1d3350;color:#a9d2ff;padding:9px 14px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:700">🏷️ Generar Etiquetas QR</a>
-        <a href="scanner/index.html" style="display:inline-flex;align-items:center;gap:8px;background:#122944;border:1px solid #1d3350;color:#a9d2ff;padding:9px 14px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:700">📷 Scanner de Productos</a>
+      <h1>Herramientas de Vendedores</h1>
+      <p>Consulta de artículos, etiquetas QR y escáner de productos</p>
+    </section>
+
+    <!-- APP TILES -->
+    <section class="card" style="padding:18px">
+      <div class="apps-landing">
+        <a class="app-tile" href="./etiquetas/">
+          <span class="app-tile-icon">🏷️</span>
+          <span class="app-tile-title">Generador de Etiquetas</span>
+          <span class="app-tile-desc">Cargá productos, generá códigos QR e imprimí etiquetas listas para planillas A4.</span>
+          <span class="app-tile-badge">Nueva app</span>
+        </a>
+        <a class="app-tile" href="./scanner/">
+          <span class="app-tile-icon">📷</span>
+          <span class="app-tile-title">Scanner de Productos</span>
+          <span class="app-tile-desc">Escaneá QR o código de barras con la cámara y consultá el producto al instante. PWA instalable.</span>
+          <span class="app-tile-badge">PWA · Offline</span>
+        </a>
       </div>
+    </section>
+
+    <section class="card hero" style="padding-top:12px;padding-bottom:12px">
+      <h1 style="font-size:15px">Consulta de Artículos</h1>
+      <p>Base: ranking con precios y saldo de sucursales</p>
     </section>
 
     <section class="card search-main">

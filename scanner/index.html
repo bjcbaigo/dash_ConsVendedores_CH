@@ -2,619 +2,384 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0d1117" />
-  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a1a2e" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Scanner Productos</title>
-  <link rel="manifest" href="manifest.json" />
+  <link rel="manifest" href="./manifest.json" />
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     :root {
-      --bg: #0d1117;
-      --panel: #161b22;
-      --panel2: #1c2128;
-      --border: #30363d;
-      --text: #e6edf3;
-      --muted: #7d8590;
-      --accent: #2f81f7;
-      --accent2: #1f6feb;
-      --good: #3fb950;
-      --warn: #d29922;
-      --bad: #f85149;
-      --radius: 14px;
-      --shadow: 0 8px 24px rgba(0,0,0,.4);
+      --bg:      #1a1a2e;
+      --bg2:     #16213e;
+      --bg3:     #0f3460;
+      --surface: #1e2a45;
+      --sf2:     #243452;
+      --border:  #2d4070;
+      --accent:  #e94560;
+      --acc2:    #0f9af0;
+      --text:    #e8eaf6;
+      --muted:   #8892b0;
+      --good:    #00e676;
+      --warn:    #ffd740;
+      --bad:     #ff5252;
+      --r:       14px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body {
-      font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding-bottom: 24px;
-    }
+    html, body { height: 100%; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
-    /* Header */
+    /* HEADER */
     .header {
-      background: linear-gradient(135deg, #0d1117, #161b22);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 16px;
-      display: flex; align-items: center; gap: 12px;
-      position: sticky; top: 0; z-index: 100;
+      background: linear-gradient(135deg, var(--bg3), var(--bg2));
+      padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .header-icon { font-size: 26px; }
     .header h1 { font-size: 18px; font-weight: 700; }
-    .header p { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .header-nav { margin-left: auto; }
-    .btn-home {
-      background: var(--panel2); border: 1px solid var(--border);
-      color: var(--muted); padding: 8px 12px; border-radius: 10px;
-      font-size: 13px; text-decoration: none; display: inline-block;
+    .header .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .install-btn {
+      background: var(--acc2); color: white; border: none; border-radius: 8px;
+      padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: none;
     }
 
-    /* Main content */
-    .main { max-width: 520px; margin: 0 auto; padding: 16px; }
+    /* MAIN */
+    .main { flex: 1; overflow-y: auto; padding: 16px; max-width: 480px; margin: 0 auto; width: 100%; }
 
-    /* Card */
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 14px;
+    /* SCANNER CARD */
+    .scanner-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; margin-bottom: 16px; }
+    .scanner-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    .scanner-title { font-size: 15px; font-weight: 700; }
+    .scan-toggle {
+      background: var(--accent); color: white; border: none; border-radius: 8px;
+      padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer;
     }
-    .card-title {
-      font-size: 13px; font-weight: 700; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .06em;
-      margin-bottom: 12px;
-    }
+    .scan-toggle.stop { background: #555; }
 
-    /* Scanner area */
-    .scanner-wrap {
-      position: relative;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #000;
-      aspect-ratio: 1 / 1;
-      max-height: 300px;
-    }
-    #reader {
-      width: 100% !important;
-    }
-    #reader video {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: cover;
-    }
-    /* Override html5-qrcode styles */
-    #reader img { display: none !important; }
-    #reader__scan_region { border: none !important; }
-    #reader__dashboard { display: none !important; }
+    /* VIEWFINDER */
+    .viewfinder-wrap { position: relative; background: #000; display: none; min-height: 240px; }
+    .viewfinder-wrap.open { display: block; }
+    #reader { width: 100% !important; }
+    #reader video { width: 100% !important; object-fit: cover; }
 
-    .scan-overlay {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      pointer-events: none;
+    /* SCAN ANIMATION */
+    .scan-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; display: flex; align-items: center; justify-content: center; }
+    .scan-box { width: 200px; height: 200px; position: relative; }
+    .scan-box::before, .scan-box::after {
+      content: ''; position: absolute; width: 30px; height: 30px; border-color: var(--accent); border-style: solid;
     }
-    .scan-frame {
-      width: 180px; height: 180px;
-      border: 2px solid rgba(47,129,247,.7);
-      border-radius: 12px;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,.45);
-      position: relative;
-    }
-    .scan-frame::before {
-      content: '';
-      position: absolute;
-      top: -1px; left: -1px; right: -1px;
-      height: 3px;
+    .scan-box::before { top: 0; left: 0; border-width: 3px 0 0 3px; }
+    .scan-box::after  { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
+    .scan-corners span { position: absolute; width: 30px; height: 30px; border-color: var(--accent); border-style: solid; }
+    .scan-corners span:nth-child(1) { top: 0; right: 0; border-width: 3px 3px 0 0; }
+    .scan-corners span:nth-child(2) { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
+    .scan-line {
+      position: absolute; left: 4px; right: 4px; height: 2px;
       background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      animation: scanline 2s ease-in-out infinite;
+      animation: scanline 2s linear infinite;
     }
     @keyframes scanline {
-      0%, 100% { top: 0; opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      0% { top: 0; }
-      50% { top: calc(100% - 3px); }
-    }
-    .scan-corner {
-      position: absolute;
-      width: 20px; height: 20px;
-      border-color: var(--accent);
-      border-style: solid;
-    }
-    .scan-corner.tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
-    .scan-corner.tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
-    .scan-corner.bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
-    .scan-corner.br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
-
-    /* Controls */
-    .scanner-controls { display: flex; gap: 10px; margin-top: 12px; }
-    .btn {
-      border: none; border-radius: 10px; padding: 12px 16px;
-      font-size: 14px; font-weight: 700; cursor: pointer;
-      display: flex; align-items: center; gap: 8px; justify-content: center;
-      transition: opacity .15s;
-    }
-    .btn:active { opacity: .75; }
-    .btn-primary { background: var(--accent); color: #fff; flex: 1; }
-    .btn-stop { background: var(--bad); color: #fff; flex: 1; }
-    .btn-secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
-
-    /* Status */
-    .status-bar {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 12px; border-radius: 10px;
-      background: var(--panel2); border: 1px solid var(--border);
-      font-size: 13px;
-    }
-    .status-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--muted); flex-shrink: 0;
-    }
-    .status-dot.active { background: var(--good); animation: pulse 1.5s infinite; }
-    .status-dot.error { background: var(--bad); }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; } 50% { opacity: .4; }
+      0%  { top: 10%; opacity: 1; }
+      90% { top: 85%; opacity: 1; }
+      100%{ top: 85%; opacity: 0; }
     }
 
-    /* Manual search */
-    .search-row { display: flex; gap: 8px; }
-    .search-input {
-      flex: 1; background: var(--panel2); color: var(--text);
-      border: 1px solid var(--border); border-radius: 10px;
-      padding: 12px 14px; font-size: 16px; outline: none;
+    /* MANUAL SEARCH */
+    .manual-section { padding: 12px 16px; }
+    .manual-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+    .manual-row { display: flex; gap: 8px; }
+    .manual-input {
+      flex: 1; background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--text); outline: none;
     }
-    .search-input:focus { border-color: var(--accent); }
+    .manual-input:focus { border-color: var(--acc2); }
+    .manual-input::placeholder { color: var(--muted); }
+    .search-btn { background: var(--acc2); color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 700; cursor: pointer; }
 
-    /* Product card */
-    .product-card { animation: fadeIn .3s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    /* STATUS */
+    .status-msg { padding: 10px 16px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--border); text-align: center; display: none; }
+    .status-msg.on { display: block; }
+    .status-msg.found { color: var(--good); }
+    .status-msg.notfound { color: var(--bad); }
 
-    .product-photo {
-      width: 100%; aspect-ratio: 3/2; object-fit: cover;
-      border-radius: 10px; margin-bottom: 14px;
-      background: var(--panel2);
+    /* PRODUCT CARD */
+    .product-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); overflow: hidden; margin-bottom: 16px;
+      animation: fadeIn .3s ease;
     }
-    .product-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
-    .product-brand { font-size: 12px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
-    .product-name { font-size: 20px; font-weight: 800; margin-top: 4px; line-height: 1.2; }
-    .product-model { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+    .product-img { width: 100%; height: 180px; object-fit: cover; display: block; }
+    .product-body { padding: 16px; }
+    .product-brand { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--acc2); margin-bottom: 4px; }
+    .product-name  { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+    .product-model { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .features-list { list-style: none; margin-bottom: 16px; }
+    .features-list li { font-size: 13px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,.05); display: flex; align-items: center; gap: 8px; }
+    .features-list li::before { content: '✓'; color: var(--acc2); font-weight: 900; flex-shrink: 0; }
+    .price-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .product-price { font-size: 26px; font-weight: 900; }
+    .stock-badge { padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 800; }
+    .s-good { background: rgba(0,230,118,.15); color: var(--good); border: 1px solid rgba(0,230,118,.25); }
+    .s-warn { background: rgba(255,215,64,.15); color: var(--warn); border: 1px solid rgba(255,215,64,.25); }
+    .s-bad  { background: rgba(255,82,82,.15);  color: var(--bad);  border: 1px solid rgba(255,82,82,.25); }
+    .product-id { font-size: 11px; color: var(--muted); margin-top: 10px; }
 
-    .stock-badge {
-      padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 800;
-      white-space: nowrap; flex-shrink: 0;
-    }
-    .stock-good { background: rgba(63,185,80,.15); color: #56d364; border: 1px solid rgba(63,185,80,.3); }
-    .stock-warn { background: rgba(210,153,34,.15); color: #e3b341; border: 1px solid rgba(210,153,34,.3); }
-    .stock-bad  { background: rgba(248,81,73,.15);  color: #ff7b72; border: 1px solid rgba(248,81,73,.3); }
+    /* NO RESULT */
+    .no-result { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; text-align: center; margin-bottom: 16px; animation: fadeIn .3s ease; }
+    .nr-icon  { font-size: 40px; margin-bottom: 10px; }
+    .nr-title { font-size: 16px; font-weight: 700; color: var(--bad); margin-bottom: 6px; }
+    .nr-code  { font-size: 13px; color: var(--muted); }
 
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
-    .info-box {
-      background: var(--panel2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 12px;
-    }
-    .info-box .lab { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-    .info-box .val { font-size: 22px; font-weight: 800; margin-top: 6px; }
-    .info-box .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .price-val { color: var(--accent); }
-
-    .features-title { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
-    .features-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-    .features-list li {
-      display: flex; align-items: flex-start; gap: 8px;
-      font-size: 14px; line-height: 1.4;
-    }
-    .features-list li::before {
-      content: '✓'; color: var(--good); font-weight: 800;
-      font-size: 12px; margin-top: 2px; flex-shrink: 0;
-    }
-
-    .id-row {
-      display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;
-    }
-    .chip {
-      background: var(--panel2); border: 1px solid var(--border);
-      border-radius: 999px; padding: 4px 10px;
-      font-size: 11px; color: var(--muted); font-family: monospace;
-    }
-
-    /* History */
-    .history-list { display: flex; flex-direction: column; gap: 8px; }
-    .history-item {
-      display: flex; align-items: center; gap: 12px;
-      background: var(--panel2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 10px 12px; cursor: pointer;
-      transition: border-color .15s;
-    }
-    .history-item:hover { border-color: var(--accent); }
-    .history-icon { font-size: 20px; }
-    .history-name { font-size: 14px; font-weight: 700; }
-    .history-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    /* HISTORY */
+    .history-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 16px; overflow: hidden; }
+    .history-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .history-title { font-size: 14px; font-weight: 700; }
+    .history-clear { font-size: 12px; color: var(--muted); background: none; border: none; cursor: pointer; padding: 2px 8px; color: var(--muted); }
+    .history-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.04); cursor: pointer; }
+    .history-item:last-child { border-bottom: none; }
+    .history-item:hover { background: var(--sf2); }
+    .history-icon { font-size: 20px; flex-shrink: 0; }
+    .h-name { font-size: 14px; font-weight: 600; }
+    .h-meta { font-size: 12px; color: var(--muted); }
     .history-time { font-size: 11px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+    .history-empty { padding: 20px 16px; text-align: center; color: var(--muted); font-size: 13px; }
 
-    /* Not found */
-    .not-found { text-align: center; padding: 24px 0; color: var(--muted); }
-    .not-found .icon { font-size: 48px; margin-bottom: 10px; }
-    .not-found p { font-size: 14px; }
-
-    /* Empty state */
-    .empty { color: var(--muted); font-size: 14px; text-align: center; padding: 16px 0; }
-
-    @media (min-width: 480px) {
-      .scanner-wrap { max-height: 360px; }
-    }
+    .footer { text-align: center; padding: 14px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); }
   </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-icon">📷</div>
   <div>
-    <h1>Scanner Productos</h1>
-    <p>Lector QR / EAN con base local</p>
+    <h1>📷 Scanner Productos</h1>
+    <div class="subtitle">Escaneá QR o código de barras</div>
   </div>
-  <div class="header-nav">
-    <a class="btn-home" href="../index.html">← Inicio</a>
-  </div>
+  <button class="install-btn" id="installBtn">📲 Instalar</button>
 </div>
 
 <div class="main">
 
-  <!-- Scanner -->
-  <div class="card">
-    <div class="card-title">📷 Cámara</div>
-    <div class="scanner-wrap">
+  <div class="scanner-card">
+    <div class="scanner-header">
+      <span class="scanner-title">Cámara</span>
+      <button class="scan-toggle" id="scanToggle" onclick="toggleScan()">▶ Iniciar cámara</button>
+    </div>
+
+    <div class="viewfinder-wrap" id="viewfinderWrap">
       <div id="reader"></div>
-      <div class="scan-overlay" id="scanOverlay">
-        <div class="scan-frame">
-          <div class="scan-corner tl"></div>
-          <div class="scan-corner tr"></div>
-          <div class="scan-corner bl"></div>
-          <div class="scan-corner br"></div>
+      <div class="scan-overlay">
+        <div class="scan-box">
+          <div class="scan-corners"><span></span><span></span></div>
+          <div class="scan-line"></div>
         </div>
       </div>
     </div>
-    <div class="scanner-controls">
-      <button class="btn btn-primary" id="btnStart">▶ Iniciar cámara</button>
-      <button class="btn btn-stop" id="btnStop" style="display:none">⏹ Detener</button>
+
+    <div class="manual-section">
+      <div class="manual-label">Búsqueda manual (código o nombre)</div>
+      <div class="manual-row">
+        <input id="manualInput" class="manual-input" type="text"
+          placeholder="Ej: ART-001, iPhone o EAN…"
+          onkeydown="if(event.key==='Enter') manualSearch()" />
+        <button class="search-btn" onclick="manualSearch()">Buscar</button>
+      </div>
     </div>
-    <div class="status-bar" style="margin-top:10px">
-      <div class="status-dot" id="statusDot"></div>
-      <span id="statusText">Presioná "Iniciar cámara" para escanear</span>
-    </div>
+
+    <div class="status-msg" id="statusMsg"></div>
   </div>
 
-  <!-- Manual search -->
-  <div class="card">
-    <div class="card-title">🔍 Búsqueda manual</div>
-    <div class="search-row">
-      <input class="search-input" id="searchInput" type="text"
-        placeholder="Código ART-001 o EAN..." autocomplete="off" />
-      <button class="btn btn-secondary" id="btnSearch">Buscar</button>
+  <div id="productResult"></div>
+
+  <div class="history-card">
+    <div class="history-header">
+      <span class="history-title">Últimos escaneos</span>
+      <button class="history-clear" onclick="clearHistory()">Limpiar</button>
     </div>
-  </div>
-
-  <!-- Product result -->
-  <div id="productSection" style="display:none">
-    <div class="card product-card" id="productCard"><!-- filled by JS --></div>
-  </div>
-
-  <!-- History -->
-  <div class="card" id="historySection">
-    <div class="card-title">🕐 Últimas consultas</div>
-    <div id="historyList" class="empty">Aún no hay escaneos recientes.</div>
+    <div id="historyList"><div class="history-empty">Sin escaneos recientes</div></div>
   </div>
 
 </div>
 
+<div class="footer">Scanner Productos PWA · Base local de 10 productos</div>
+
 <script>
-// ── Base de datos local de productos ─────────────────────────────────────────
 const PRODUCTOS = [
-  {
-    id: "ART-001", ean: "7798051234501",
-    nombre: "Galaxy S24 Ultra", marca: "Samsung", modelo: "S24 Ultra 256GB",
-    caracteristicas: ["6.8\" Dynamic AMOLED 2X 120Hz","200MP cuádruple cámara","5000 mAh batería","S-Pen incluido","Titanio Serie 7"],
-    precio: 299999, stock: 12,
-    foto: "https://picsum.photos/seed/samsung24/400/267"
-  },
-  {
-    id: "ART-002", ean: "0194253413578",
-    nombre: "iPhone 15 Pro", marca: "Apple", modelo: "A3102 128GB Titanio",
-    caracteristicas: ["6.1\" Super Retina XDR","48MP Triple cámara + Lidar","USB-C 3.0 SuperSpeed","Chip A17 Pro 3nm","Botón de acción personalizable"],
-    precio: 349999, stock: 8,
-    foto: "https://picsum.photos/seed/iphone15/400/267"
-  },
-  {
-    id: "ART-003", ean: "4548736142428",
-    nombre: "WH-1000XM5", marca: "Sony", modelo: "WH-1000XM5/B Negro",
-    caracteristicas: ["ANC líder de la industria 2024","30 hs batería + carga rápida","Bluetooth 5.2 multipoint","Hi-Res Audio certificado","8 micrófonos con IA"],
-    precio: 89999, stock: 25,
-    foto: "https://picsum.photos/seed/sonymx5/400/267"
-  },
-  {
-    id: "ART-004", ean: "8806098769599",
-    nombre: "OLED 55\" 4K evo", marca: "LG", modelo: "OLED55C3PSA 2023",
-    caracteristicas: ["Pantalla OLED evo 4K 120Hz","Dolby Vision IQ + Atmos","webOS 23 ThinQ AI","4x HDMI 2.1 48Gbps","Procesador α9 Gen6 IA"],
-    precio: 459999, stock: 4,
-    foto: "https://picsum.photos/seed/lgoled55/400/267"
-  },
-  {
-    id: "ART-005", ean: "5397184740040",
-    nombre: "XPS 15 9530", marca: "Dell", modelo: "Core i7-13700H 512GB",
-    caracteristicas: ["15.6\" OLED Touch 3.5K 60Hz","Intel Core i7-13700H","16 GB RAM DDR5 5600MHz","NVIDIA GeForce RTX 4060","Batería 86Wh carga rápida"],
-    precio: 529999, stock: 6,
-    foto: "https://picsum.photos/seed/dellxps15/400/267"
-  },
-  {
-    id: "ART-006", ean: "4549292195606",
-    nombre: "EOS R50", marca: "Canon", modelo: "EOS R50 Kit 18-45mm RF-S",
-    caracteristicas: ["Sensor APS-C 24.2MP CMOS","Video 4K/30fps sin crop","WiFi + Bluetooth","DIGIC X procesador rápido","Eye AF + seguimiento animal"],
-    precio: 189999, stock: 9,
-    foto: "https://picsum.photos/seed/canonr50/400/267"
-  },
-  {
-    id: "ART-007", ean: "0889842640786",
-    nombre: "Xbox Series X", marca: "Microsoft", modelo: "1TB SSD Custom NVMe",
-    caracteristicas: ["4K 120fps + Ray Tracing","1TB SSD velocidad 2.4 GB/s","Quick Resume multijuego","Xbox Game Pass compatible","Wi-Fi 5 + Bluetooth 5.0"],
-    precio: 219999, stock: 3,
-    foto: "https://picsum.photos/seed/xboxseriesx/400/267"
-  },
-  {
-    id: "ART-008", ean: "5025155050941",
-    nombre: "V15 Detect Absolute", marca: "Dyson", modelo: "V15 Detect 2023",
-    caracteristicas: ["230 AW succión máxima","Láser detector de polvo fino","Pantalla LCD cuenta partículas","60 min autonomía en suave","HEPA filtración 99.97%"],
-    precio: 159999, stock: 17,
-    foto: "https://picsum.photos/seed/dysonv15/400/267"
-  },
-  {
-    id: "ART-009", ean: "0840080500360",
-    nombre: "Kindle Paperwhite", marca: "Amazon", modelo: "11va Gen 8GB 2023",
-    caracteristicas: ["6.8\" pantalla 300ppi sin reflejos","Resistente al agua IPX8","Luz ajustable tono cálido","10 semanas de batería","USB-C + carga inalámbrica"],
-    precio: 39999, stock: 31,
-    foto: "https://picsum.photos/seed/kindlepw/400/267"
-  },
-  {
-    id: "ART-010", ean: "0194253412861",
-    nombre: "Apple Watch Series 9", marca: "Apple", modelo: "Series 9 41mm GPS Aluminio",
-    caracteristicas: ["Always-On Retina 2000 nits","Chip S9 SiP doble núcleo","Crash Detection + ECG","Temperatura muñeca y O2","Carbon neutral certificado"],
-    precio: 179999, stock: 14,
-    foto: "https://picsum.photos/seed/applewatch9/400/267"
-  }
+  { id:"ART-001", ean:"7798051234501", nombre:"Galaxy S24 Ultra",  marca:"Samsung",   modelo:"S24 Ultra 256GB",      caracteristicas:["6.8\" AMOLED","200MP cámara","5000mAh batería","S-Pen incluido"],          precio:299999, stock:12, foto:"https://picsum.photos/seed/samsung/300/200"    },
+  { id:"ART-002", ean:"0194253413578", nombre:"iPhone 15 Pro",     marca:"Apple",     modelo:"A3102 128GB",           caracteristicas:["6.1\" Super Retina","48MP Triple cámara","USB-C","Chip A17 Pro"],          precio:349999, stock:8,  foto:"https://picsum.photos/seed/apple/300/200"      },
+  { id:"ART-003", ean:"4548736142428", nombre:"WH-1000XM5",        marca:"Sony",      modelo:"WH-1000XM5/B",          caracteristicas:["ANC líder industria","30h batería","Bluetooth 5.2","Hi-Res Audio"],        precio:89999,  stock:25, foto:"https://picsum.photos/seed/sony/300/200"       },
+  { id:"ART-004", ean:"8806098769599", nombre:"OLED 55\" 4K",      marca:"LG",        modelo:"OLED55C3PSA",           caracteristicas:["4K OLED 120Hz","Dolby Vision IQ","webOS 23","4x HDMI 2.1"],               precio:459999, stock:4,  foto:"https://picsum.photos/seed/lgtv/300/200"       },
+  { id:"ART-005", ean:"5397184740040", nombre:"XPS 15 9530",       marca:"Dell",      modelo:"9530 Core i7",          caracteristicas:["15.6\" OLED Touch","Intel i7-13700H","16GB RAM DDR5","512GB NVMe"],        precio:529999, stock:6,  foto:"https://picsum.photos/seed/dell/300/200"       },
+  { id:"ART-006", ean:"4549292195606", nombre:"EOS R50",           marca:"Canon",     modelo:"EOS R50 Kit 18-45mm",   caracteristicas:["24.2MP APS-C","Video 4K/30fps","WiFi Bluetooth","DIGIC X procesador"],    precio:189999, stock:9,  foto:"https://picsum.photos/seed/canon/300/200"      },
+  { id:"ART-007", ean:"0889842640786", nombre:"Xbox Series X",     marca:"Microsoft", modelo:"1TB SSD",               caracteristicas:["4K 120fps","Ray Tracing","Quick Resume","Game Pass compatible"],          precio:219999, stock:3,  foto:"https://picsum.photos/seed/xbox/300/200"       },
+  { id:"ART-008", ean:"5025155050941", nombre:"V15 Detect",        marca:"Dyson",     modelo:"V15 Detect Absolute",   caracteristicas:["230 AW succión","Láser detector polvo","Pantalla LCD","60min autonomía"], precio:159999, stock:17, foto:"https://picsum.photos/seed/dyson/300/200"      },
+  { id:"ART-009", ean:"0840080500360", nombre:"Kindle Paperwhite", marca:"Amazon",    modelo:"11va Gen 8GB",          caracteristicas:["6.8\" 300ppi","Resistente al agua IPX8","Luz ajustable cálida","10 semanas batería"], precio:39999, stock:31, foto:"https://picsum.photos/seed/kindle/300/200" },
+  { id:"ART-010", ean:"0194253412861", nombre:"Apple Watch S9",    marca:"Apple",     modelo:"Series 9 41mm GPS",     caracteristicas:["Always-On Retina","Chip S9 SiP","Crash Detection","Carbon neutral"],      precio:179999, stock:14, foto:"https://picsum.photos/seed/applewatch/300/200" },
 ];
 
-// ── Utilidades ────────────────────────────────────────────────────────────────
-function $(id) { return document.getElementById(id); }
-
-function fmt(n) {
-  return Number(n || 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
-}
-
-function findProduct(raw) {
-  const q = (raw || '').trim();
-  if (!q) return null;
-  // try id exact
-  let p = PRODUCTOS.find(x => x.id.toLowerCase() === q.toLowerCase());
-  if (p) return p;
-  // try ean exact
-  p = PRODUCTOS.find(x => x.ean === q);
-  if (p) return p;
-  // try json with id field
-  try {
-    const obj = JSON.parse(q);
-    if (obj.id) {
-      p = PRODUCTOS.find(x => x.id === obj.id);
-      if (p) return p;
-    }
-    if (obj.ean) {
-      p = PRODUCTOS.find(x => x.ean === obj.ean);
-      if (p) return p;
-    }
-  } catch (_) {}
-  // partial match by name
-  p = PRODUCTOS.find(x =>
-    x.nombre.toLowerCase().includes(q.toLowerCase()) ||
-    x.id.toLowerCase().includes(q.toLowerCase())
-  );
-  return p || null;
-}
-
-function stockClass(s) {
-  if (s >= 20) return 'stock-good';
-  if (s >= 5)  return 'stock-warn';
-  return 'stock-bad';
-}
-function stockLabel(s) {
-  if (s >= 20) return `✅ Stock OK (${s} u.)`;
-  if (s >= 5)  return `⚠️ Stock bajo (${s} u.)`;
-  if (s > 0)   return `🔴 Pocas unidades (${s} u.)`;
-  return '❌ Sin stock';
-}
-
-// ── Historial ─────────────────────────────────────────────────────────────────
+let scannerRunning = false;
+let html5QrCode = null;
 let history = [];
 
-function addHistory(product) {
-  history = [product, ...history.filter(x => x.id !== product.id)].slice(0, 5);
+function lookupProduct(raw) {
+  raw = String(raw||'').trim();
+  if (raw.startsWith('{')) {
+    try {
+      const obj = JSON.parse(raw);
+      const r = PRODUCTOS.find(p => p.id === obj.id);
+      if (r) return r;
+    } catch(_) {}
+  }
+  const q = raw.toLowerCase();
+  return PRODUCTOS.find(p => p.id.toLowerCase() === q) ||
+         PRODUCTOS.find(p => p.ean === raw) ||
+         PRODUCTOS.find(p => p.nombre.toLowerCase().includes(q) || p.marca.toLowerCase().includes(q) || p.modelo.toLowerCase().includes(q)) ||
+         null;
+}
+
+function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderProduct(p) {
+  const sc = p.stock < 5 ? 's-bad' : p.stock < 20 ? 's-warn' : 's-good';
+  const sl = `Stock: ${p.stock}${p.stock < 5 ? ' ⚠️' : ''}`;
+  document.getElementById('productResult').innerHTML = `
+    <div class="product-card">
+      <img class="product-img" src="${esc(p.foto)}" alt="${esc(p.nombre)}" loading="lazy"
+           onerror="this.src='https://picsum.photos/seed/${p.id}/300/200'" />
+      <div class="product-body">
+        <div class="product-brand">${esc(p.marca)}</div>
+        <div class="product-name">${esc(p.nombre)}</div>
+        <div class="product-model">${esc(p.modelo)}</div>
+        <ul class="features-list">${p.caracteristicas.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>
+        <div class="price-row">
+          <div class="product-price">$${Number(p.precio).toLocaleString('es-AR')}</div>
+          <div class="stock-badge ${sc}">${sl}</div>
+        </div>
+        <div class="product-id">ID: ${esc(p.id)} &nbsp;·&nbsp; EAN: ${esc(p.ean)}</div>
+      </div>
+    </div>`;
+}
+
+function renderNoResult(code) {
+  document.getElementById('productResult').innerHTML = `
+    <div class="no-result">
+      <div class="nr-icon">🔍</div>
+      <div class="nr-title">Producto no encontrado</div>
+      <div class="nr-code">Código: <strong>${esc(code)}</strong></div>
+    </div>`;
+}
+
+function setStatus(type, msg) {
+  const el = document.getElementById('statusMsg');
+  el.className = `status-msg on ${type}`;
+  el.textContent = msg;
+}
+
+function handleCode(code) {
+  code = String(code||'').trim();
+  if (!code) return;
+  const p = lookupProduct(code);
+  setStatus(p ? 'found' : 'notfound', p ? `✓ ${p.nombre}` : `No encontrado: ${code}`);
+  if (p) renderProduct(p);
+  else renderNoResult(code);
+  addHistory(p, code);
+  if (scannerRunning) stopScan();
+}
+
+function manualSearch() {
+  const v = document.getElementById('manualInput').value.trim();
+  if (v) handleCode(v);
+}
+
+async function toggleScan() {
+  scannerRunning ? stopScan() : await startScan();
+}
+
+async function startScan() {
+  const btn = document.getElementById('scanToggle');
+  const wrap = document.getElementById('viewfinderWrap');
+  btn.textContent = '⏹ Detener';
+  btn.classList.add('stop');
+  wrap.classList.add('open');
+  try {
+    html5QrCode = new Html5Qrcode('reader');
+    await html5QrCode.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 200, height: 200 }, aspectRatio: 1.5 },
+      (text) => handleCode(text),
+      () => {}
+    );
+    scannerRunning = true;
+  } catch(e) {
+    wrap.classList.remove('open');
+    btn.textContent = '▶ Iniciar cámara';
+    btn.classList.remove('stop');
+    setStatus('notfound', 'No se pudo acceder a la cámara. Usá búsqueda manual.');
+  }
+}
+
+async function stopScan() {
+  const btn = document.getElementById('scanToggle');
+  const wrap = document.getElementById('viewfinderWrap');
+  btn.textContent = '▶ Iniciar cámara';
+  btn.classList.remove('stop');
+  wrap.classList.remove('open');
+  scannerRunning = false;
+  if (html5QrCode) {
+    try { await html5QrCode.stop(); } catch(_) {}
+    try { html5QrCode.clear(); } catch(_) {}
+    html5QrCode = null;
+  }
+}
+
+function addHistory(product, code) {
+  history.unshift({ product, code, time: new Date() });
+  if (history.length > 5) history.pop();
   renderHistory();
 }
 
 function renderHistory() {
-  const el = $('historyList');
-  if (!history.length) {
-    el.innerHTML = '<div class="empty">Aún no hay escaneos recientes.</div>';
-    return;
-  }
-  el.innerHTML = '';
-  el.className = 'history-list';
-  history.forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'history-item';
-    div.innerHTML = `
-      <div class="history-icon">📦</div>
-      <div>
-        <div class="history-name">${p.nombre}</div>
-        <div class="history-meta">${p.marca} · ${p.id}</div>
-      </div>
-      <div class="history-time">${fmt(p.precio)}</div>
-    `;
-    div.addEventListener('click', () => showProduct(p));
-    el.appendChild(div);
-  });
+  const el = document.getElementById('historyList');
+  if (!history.length) { el.innerHTML = '<div class="history-empty">Sin escaneos recientes</div>'; return; }
+  el.innerHTML = history.map((e, i) => {
+    const p = e.product;
+    const name = p ? p.nombre : 'No encontrado';
+    const meta = p ? `${p.marca} · $${Number(p.precio).toLocaleString('es-AR')}` : e.code;
+    const t = e.time.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    return `<div class="history-item" onclick="reloadHist(${i})">
+      <span class="history-icon">${p ? '✅' : '❌'}</span>
+      <div><div class="h-name">${esc(name)}</div><div class="h-meta">${esc(meta)}</div></div>
+      <span class="history-time">${t}</span>
+    </div>`;
+  }).join('');
 }
 
-// ── Mostrar producto ──────────────────────────────────────────────────────────
-function showProduct(p) {
-  const sc = stockClass(p.stock);
-  const sl = stockLabel(p.stock);
-
-  $('productCard').innerHTML = `
-    <img class="product-photo" src="${p.foto}" alt="${p.nombre}"
-      onerror="this.src='https://via.placeholder.com/400x267/1c2128/7d8590?text=Sin+foto'" />
-    <div class="product-header">
-      <div>
-        <div class="product-brand">${p.marca}</div>
-        <div class="product-name">${p.nombre}</div>
-        <div class="product-model">${p.modelo}</div>
-      </div>
-      <span class="stock-badge ${sc}">${sl}</span>
-    </div>
-
-    <div class="info-grid">
-      <div class="info-box">
-        <div class="lab">Precio</div>
-        <div class="val price-val">${fmt(p.precio)}</div>
-        <div class="sub">Precio de lista</div>
-      </div>
-      <div class="info-box">
-        <div class="lab">Stock</div>
-        <div class="val">${p.stock}</div>
-        <div class="sub">Unidades disponibles</div>
-      </div>
-    </div>
-
-    <div class="features-title">Características</div>
-    <ul class="features-list">
-      ${p.caracteristicas.map(c => `<li>${c}</li>`).join('')}
-    </ul>
-
-    <div class="id-row">
-      <span class="chip">ID: ${p.id}</span>
-      <span class="chip">EAN: ${p.ean}</span>
-    </div>
-  `;
-
-  $('productSection').style.display = 'block';
-  $('productSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  addHistory(p);
+function reloadHist(i) {
+  const e = history[i];
+  if (e.product) renderProduct(e.product);
+  else renderNoResult(e.code);
 }
 
-function showNotFound(raw) {
-  $('productCard').innerHTML = `
-    <div class="not-found">
-      <div class="icon">🔍</div>
-      <p><strong>No encontrado</strong></p>
-      <p style="margin-top:6px">Código: <code>${raw}</code></p>
-      <p style="margin-top:4px; font-size:13px">Verificá el código e intentá de nuevo.</p>
-    </div>
-  `;
-  $('productSection').style.display = 'block';
-  $('productSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+function clearHistory() {
+  history = [];
+  renderHistory();
 }
 
-// ── Buscar ────────────────────────────────────────────────────────────────────
-function doSearch(raw) {
-  const p = findProduct(raw);
-  if (p) showProduct(p);
-  else showNotFound(raw);
-}
-
-// ── Scanner ───────────────────────────────────────────────────────────────────
-let scanner = null;
-let scanning = false;
-
-function setStatus(text, state) {
-  $('statusText').textContent = text;
-  const dot = $('statusDot');
-  dot.className = 'status-dot' + (state === 'active' ? ' active' : state === 'error' ? ' error' : '');
-}
-
-async function startScanner() {
-  if (scanning) return;
-  setStatus('Iniciando cámara…', '');
-  $('btnStart').style.display = 'none';
-  $('btnStop').style.display = 'flex';
-
-  try {
-    scanner = new Html5Qrcode('reader');
-    const config = {
-      fps: 12,
-      qrbox: { width: 200, height: 200 },
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.QR_CODE,
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.UPC_A,
-      ]
-    };
-
-    await scanner.start(
-      { facingMode: 'environment' },
-      config,
-      (decoded) => {
-        setStatus('✅ Código leído: ' + decoded.slice(0, 40), 'active');
-        stopScanner();
-        doSearch(decoded);
-      },
-      () => { /* ignore scan errors */ }
-    );
-
-    scanning = true;
-    setStatus('Cámara activa — apuntá al código QR o EAN', 'active');
-  } catch (err) {
-    setStatus('Error: ' + (err.message || err), 'error');
-    $('btnStart').style.display = 'flex';
-    $('btnStop').style.display = 'none';
-  }
-}
-
-async function stopScanner() {
-  if (!scanner) return;
-  try {
-    await scanner.stop();
-    scanner.clear();
-  } catch (_) {}
-  scanner = null;
-  scanning = false;
-  $('btnStart').style.display = 'flex';
-  $('btnStop').style.display = 'none';
-  setStatus('Cámara detenida', '');
-}
-
-// ── Event listeners ───────────────────────────────────────────────────────────
-$('btnStart').addEventListener('click', startScanner);
-$('btnStop').addEventListener('click', stopScanner);
-
-$('btnSearch').addEventListener('click', () => {
-  const v = $('searchInput').value.trim();
-  if (v) { doSearch(v); $('searchInput').value = ''; }
+// PWA install
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('installBtn').style.display = 'block';
+});
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBtn').style.display = 'none';
 });
 
-$('searchInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    const v = $('searchInput').value.trim();
-    if (v) { doSearch(v); $('searchInput').value = ''; }
-  }
-});
-
-// ── Service Worker ────────────────────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
-}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
 </body>
 </html>
