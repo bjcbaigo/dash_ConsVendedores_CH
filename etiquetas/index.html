@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Generador de Etiquetas con QR</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js"></script>
   <style>
     :root {
       --blue: #1a56db;
@@ -340,7 +340,7 @@ function setSize(s) {
 function qrPx(size) { return { small: 80, medium: 110, large: 140 }[size] || 110; }
 
 // ---- GENERATE ----
-async function generateLabels() {
+function generateLabels() {
   const list = selectedIds.size ? products.filter(p => selectedIds.has(p.id)) : products;
   if (!list.length) { showToast('No hay productos para generar'); return; }
 
@@ -351,6 +351,7 @@ async function generateLabels() {
 
   for (const p of list) {
     const qrData = JSON.stringify({ id: p.codigo, desc: p.descripcion, marca: p.marca, precio: p.precio });
+    const px = qrPx(currentSize);
 
     const card = document.createElement('div');
     card.className = 'label-card';
@@ -369,11 +370,15 @@ async function generateLabels() {
     grid.appendChild(card);
 
     try {
-      const canvas = document.createElement('canvas');
-      qrWrap.appendChild(canvas);
-      await QRCode.toCanvas(canvas, qrData, { width: qrPx(currentSize), margin: 1, color: { dark: '#111928', light: '#ffffff' } });
+      new QRCode(qrWrap, {
+        text: qrData,
+        width: px,
+        height: px,
+        colorDark: '#111928',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
     } catch(e) {
-      const px = qrPx(currentSize);
       qrWrap.innerHTML = `<div style="width:${px}px;height:${px}px;background:#fee2e2;display:flex;align-items:center;justify-content:center;font-size:10px;color:#ef4444;border-radius:4px;">QR error</div>`;
     }
   }
